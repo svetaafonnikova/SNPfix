@@ -1,0 +1,22 @@
+#!/bin/bash 
+
+#SBATCH -J bwa  #Job name
+#SBATCH --mem 32GB
+#SBATCH -p amd_256M
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH -t 100:00:00
+
+
+
+
+
+#source activate nextflow_env
+
+env NXF_HOME='/beegfs/scratch/ws/ws1/afonnikovasvetlana-chip/nextflow/nextflow_home/'  env NXF_EXECUTOR='slurm'\
+ env TMPDIR='/beegfs/scratch/ws/ws1/afonnikovasvetlana-chip/nextflow/tmp/' \
+ env NXF_PLUGINS_DIR='/beegfs/scratch/ws/ws1/afonnikovasvetlana-chip/nextflow/nextflow_home/plugins/' \
+  nextflow run main.nf -c nextflow.config -resume
+
+#nextflow run fastqc.nf -c nextflow.config   # raw fastqc
+# trim_fastp_qc2.nf  -resume

@@ -1,0 +1,23 @@
+name: env_chip
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+
+  - samtools=1.17
+  - blast=2.16.0
+  - makeblastdb
+  - tblastn
+  - blastn
+
+  # Python
+  - python=3.10
+  - pysam
+  - numpy
+  - pandas
+  - biopython  
+
+  - bedtools
+  - wget
+  - unzip
