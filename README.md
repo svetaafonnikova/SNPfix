@@ -5,7 +5,7 @@
 
 **SNPfix** — bioinformatics pipeline for transferring SNP coordinates between genome assemblies, including closely related species.
 
-## ✨ Features
+##  Features
 
 - ✅ Transfers SNP coordinates between **different assemblies** and **species**
 - ✅ Automatic flanking sequence extraction  
@@ -13,7 +13,7 @@
 - ✅ Chromosome/position sorting & cleaning
 - ✅ Handles missing positions (NA)
 
-## 🚀 Quick Start
+##  Quick Start
 
 ```bash
 git clone https://github.com/afonnikova/snpfix.git
@@ -26,7 +26,7 @@ nextflow run snpfix.nf \
   --flank_size 50
 ```
 
-## 📋 Input Requirements
+##  Input Requirements
 
 | Parameter | Description | Format |
 |-----------|-------------|--------|
@@ -35,9 +35,9 @@ nextflow run snpfix.nf \
 | `--chip` | SNP coordinates | `Marker<tab>Chr<tab>Position` |
 | `--flank_size` | Flanking region | int (default: 50) |
 
-**⚠️ Chromosome names must match exactly** between chip file and genomes.
+** Chromosome names must match exactly** between chip file and genomes.
 
-## 📤 Output Files
+##  Output Files
 
 ```
 results/
@@ -48,21 +48,21 @@ results/
 └── lengths.tsv          # Flank lengths per marker
 ```
 
-## 🧪 Example
+##  Example
 
-**Input `barley50k.tsv`:**
+**Input `barley50k.txt`:**
 ```
 JHI-Hv50k-2016-94418	2H	422934844
 JHI-Hv50k-2016-94431	2H	423044915
 ```
 
-**Output `snpfix_final.tsv`:**
+**Output `snpfix_final.txt`:**
 ```
 JHI-Hv50k-2016-94418	2H	423012345
 JHI-Hv50k-2016-94431	2H	423154678
 ```
 
-## 💻 Installation
+##  Installation
 
 ```bash
 # Conda (recommended)
@@ -73,7 +73,7 @@ conda activate snpfix
 docker pull afonnikova/snpfix:latest
 ```
 
-## ⚙️ Resources
+##  Resources
 
 ```groovy
 params {
@@ -83,7 +83,7 @@ params {
 }
 ```
 
-## 🔬 Tested Species/Arrays
+##  Tested Species/Arrays
 
 | Species | Array | Assemblies |
 |---------|-------|------------|
@@ -91,7 +91,7 @@ params {
 | Cattle | BovineSNP50 v3 | UMD3.1→ARS-UCD2 |
 | Arabidopsis | 250K | TAIR8→TAIR10 |
 
-## 📊 Performance
+##  Performance
 
 - **Size:** 20K (scripts only)
 - **Runtime:** 15-40 min (50k SNPs, 4 cpus)  
@@ -99,7 +99,7 @@ params {
 - **Disk:** 10-15 GB (temp files)
 
 
-## 📝 Citation
+##  Citation
 
 ```bibtex
 @misc{snpfix2026,
