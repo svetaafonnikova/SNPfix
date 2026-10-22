@@ -1,0 +1,61 @@
+#!/bin/bash
+set -euo pipefail
+
+# ---------------------------------------------------------------- settings
+BASE=null
+export NXF_HOME=$BASE/nextflow/nextflow_home/
+export NXF_EXECUTOR=slurm
+export TMPDIR=$BASE/nextflow/tmp/
+export NXF_PLUGINS_DIR=$BASE/nextflow/nextflow_home/plugins/
+
+PIPE=$PWD                      
+SCRIPTS=$PIPE/scripts
+TOOLS=$PIPE/simulation          
+REF=$PIPE/base_genome.fasta    
+FLANK=50
+SEEDS="1 2 3 4 5"
+BENCH=$PWD/bench20mb
+
+EVENTS_B=(--inv-small 500,1000,2000,5000,10000,500,1000,2000,5000,10000
+          --trans-inter-inv 20000,50000,100000,20000,50000,100000
+          --trans-inter 20000,50000,200000,20000,50000,200000
+          --deletion 2000,5000,20000,2000,5000,20000
+          --trans-intra 20000,100000,20000,100000,20000,100000
+          --inv-large 300000,1000000,300000,1000000)
+INSIDE=10                      
+
+# ---------------------------------------------------------------- runs
+for scen in A B; do
+  if [ "$scen" = B ]; then EVENTS=("${EVENTS_B[@]}"); else EVENTS=(); fi
+  for s in $SEEDS; do
+    d=$BENCH/scen${scen}_seed${s}
+    mkdir -p "$d"
+
+    python3 $TOOLS/simulate_benchmark.py --ref $REF --scenario $scen --seed $s \
+            --outdir $d/sim --inside-markers $INSIDE ${EVENTS[@]+"${EVENTS[@]}"}
+
+    # 2. all pipelines on the same simulated data
+    COMMON="--ref_current $d/sim/old_ref.fa --ref_new $d/sim/new_ref.fa \
+            --markers $d/sim/markers_old.tsv --scripts $SCRIPTS \
+            --flank_size $FLANK --v_current old --v_new new"
+    for nf in main crossmap rustybam pylift; do
+      nextflow run $PIPE/${nf}.nf -c $PIPE/nextflow.config $COMMON \
+          --outdir $d/$nf --reference $d/ref_$nf \
+          -work-dir $d/work_$nf -with-trace $d/trace_${nf}.txt
+    done
+
+    # 3. evaluation of this replicate
+    mkdir -p $d/eval
+    python3 $TOOLS/evaluate_liftover.py --truth $d/sim/truth.tsv \
+        --pred snpfix=$d/main/chip_new.txt \
+        --pred crossmap=$d/crossmap/chip_crossmap.tsv \
+        --pred rustybam=$d/rustybam/chip_rustybam.tsv \
+        --pred pyliftover=$d/pylift/chip_pylift.tsv \
+        --outdir $d/eval | tee $d/eval/report.txt
+  done
+done
+
+# ---------------------------------------------------------------- summary over seeds
+python3 $TOOLS/aggregate_seeds_v2.py $BENCH/scen*_seed*/eval \
+        --out $BENCH/summary_over_seeds_v2.tsv --ref-tool snpfix | tee $BENCH/summary_over_seeds.txt
+

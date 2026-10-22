@@ -16,11 +16,19 @@ log.info """\
          ref current from   : ${params.ref_current}
          ref new from      : ${params.ref_new}
          output to    : ${params.outdir}
+         paralog/multi ratio : ${params.paralog_ratio} / ${params.multi_ratio}
+         BLAST dust   : ${params.blast_dust}
 
          """
          .stripIndent()
 
 
+
+// Defaults; override in nextflow.config or on the command line (--multi_ratio 0.98)
+params.paralog_ratio = 0.90   // competitor >= this * best bitscore -> Unique_paralog
+params.multi_ratio   = 0.98   // competitor >= this * best bitscore -> Multi-mapped
+params.merge_dist    = 1000   // HSPs closer than this (bp) on one sequence = one locus
+params.blast_dust    = 'yes'  // 'no' disables low-complexity masking of queries
 
 scripts = file (params.scripts)
 
@@ -110,7 +118,7 @@ process BlastSearch {
 
     script:
     """
-    blastn -query ${sequences_fasta} -db ${blast_db_files[0].baseName} -out blast_${params.v_new}_results.tsv -outfmt 6
+    blastn -query ${sequences_fasta} -db ${blast_db_files[0].baseName} -out blast_${params.v_new}_results.tsv -outfmt '6 std qseq sseq' -dust ${params.blast_dust}
     """
 }
 
@@ -135,34 +143,25 @@ process ExtractHitIds {
 
 process FindFailedBlastIds {
     tag "Find failed BLAST IDs"
-
-    //publishDir path: "${params.outdir}", mode: 'copy', overwrite: true
-
     input:
-    path full_fasta     // e.g., seq_ref2.1.fasta or all_seqv2.fasta
-    path hit_ids_file   // e.g., hit_fasta_ids.txt (list of IDs with hits)
-
+    path full_fasta     
+    path hit_ids_file   
     output:
     path "all_fasta_ids.txt"
     path "all_fasta_ids_sorted.txt"
     path "hit_fasta_ids_sorted.txt"
     path "failed_blast_${params.v_new}.txt"
-
     script:
     """
-    # Extract all sequence IDs from fasta headers (remove '>')
     grep '^>' ${full_fasta} | sed 's/>//' > all_fasta_ids.txt
-
-    # Sort the full list and the hit list of IDs
     sort all_fasta_ids.txt > all_fasta_ids_sorted.txt
     sort ${hit_ids_file} > hit_fasta_ids_sorted.txt
-
-    # Find IDs present in all but not in hits (failed)
-    comm -23 all_fasta_ids_sorted.txt hit_fasta_ids_sorted.txt > failed_blast_${params.v_new}.txt
+    
+    # Output 4 columns to match the pipeline format
+    comm -23 all_fasta_ids_sorted.txt hit_fasta_ids_sorted.txt | \
+    awk '{print \$1"\tn.a.\tn.a.\tFailed_BLAST"}' > failed_blast_${params.v_new}.txt
     """
 }
-
-
 
 
 process BlastFilter {
@@ -180,8 +179,8 @@ process BlastFilter {
 
     script:
     """
-    python ${scripts}/blast_res_filter.py ${blast_results} filtered_${params.v_new}.csv filtered_failed.tsv
-    python ${scripts}/select_position.py filtered_${params.v_new}.csv ${markers_file} positions_${params.v_new}.csv
+    python ${scripts}/blast_res_filter.py ${blast_results} filtered_${params.v_new}.csv filtered_failed.tsv ${params.flank_size}
+    python ${scripts}/select_position.py filtered_${params.v_new}.csv positions_${params.v_new}.csv ${params.paralog_ratio} ${params.multi_ratio} ${params.merge_dist}
     """
 }
 

@@ -10,8 +10,6 @@ dependencies:
   - makeblastdb
   - tblastn
   - blastn
-
-  # Python
   - python=3.10
   - pysam
   - numpy
