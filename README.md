@@ -50,10 +50,15 @@ Requirements: [Nextflow](https://www.nextflow.io/), Python ≥ 3.8 with `pandas`
 The easiest way is a conda environment:
 
 ```bash
-conda create -n snpfix -c conda-forge -c bioconda nextflow blast samtools python pandas pyfaidx
-conda activate snpfix
-git clone https://github.com/<user>/SNPfix.git
+git clone https://github.com/svetaafonnikova/SNPfix.git
 cd SNPfix
+conda env create -f env_SNPfix.yml
+conda activate snpfix
+```
+### Example test run
+```
+conda run -n snpfixenv --no-capture-output nextflow run main.nf -profile test
+
 ```
 
 ## Input
