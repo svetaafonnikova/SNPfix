@@ -1,4 +1,4 @@
-name: snpfixenv
+name: env_chip
 channels:
   - bioconda
   - conda-forge
@@ -12,6 +12,7 @@ dependencies:
   - numpy
   - pandas
   - biopython
+  - pyfaidx
 
   - bedtools
   - wget
