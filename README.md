@@ -57,7 +57,7 @@ conda activate snpfix
 ```
 ### Example test run
 ```
-conda run -n snpfixenv --no-capture-output nextflow run main.nf -profile test
+conda run -n snpfixenv nextflow run main.nf -profile test
 
 ```
 
